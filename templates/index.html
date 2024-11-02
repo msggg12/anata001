@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>კომპიუტერების მართვის პანელი</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>კომპიუტერების მართვის პანელი</h1>
+    </header>
+
+    <main>
+        <div class="add-computer-form">
+            <input type="text" id="hostname-input" placeholder="შეიყვანეთ ახალი ჰოსტის სახელი" required>
+            <button id="add-button">დამატება</button>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <div id="computer-list" class="computer-list">
+            <!-- კომპიუტერები დაემატება დინამიურად -->
+        </div>
+
+        <div id="computer-data" class="computer-data">
+            <!-- არჩეული კომპიუტერის მონაცემები გამოჩნდება აქ -->
+        </div>
+    </main>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

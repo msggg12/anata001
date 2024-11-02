@@ -1,0 +1,5 @@
+{
+  "admin": {
+    "password": "generate_password_hash('!bermedia12')"
+  }
+}

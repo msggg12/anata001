@@ -22,5 +22,29 @@
     "status": "offline",
     "ip_address": "N/A",
     "anydesk_id": "N/A"
+  },
+  "dets": {
+    "cpu_usage": 0,
+    "memory_usage": 0,
+    "disk_usage": 0,
+    "status": "offline",
+    "ip_address": "N/A",
+    "anydesk_id": "N/A"
+  },
+  "ds\\": {
+    "cpu_usage": 0,
+    "memory_usage": 0,
+    "disk_usage": 0,
+    "status": "offline",
+    "ip_address": "N/A",
+    "anydesk_id": "N/A"
+  },
+  "NIKS0n": {
+    "status": "online",
+    "cpu_usage": 5.1,
+    "memory_usage": 94.5,
+    "disk_usage": 50.9,
+    "ip_address": "192.168.0.3",
+    "anydesk_id": "N/A"
   }
 }

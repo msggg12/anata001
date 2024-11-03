@@ -6,7 +6,7 @@ from functools import wraps
 from flask import session, redirect, url_for
 from cryptography.fernet import Fernet
 
-ENCRYPTION_KEY = b'YOUR_ENCRYPTION_KEY_HERE'  # 32 ბაიტიანი გასაღები
+ENCRYPTION_KEY = b'C5Nk6UxL2R1_F0fSj1U5E5y9I7G6dK1O9O5wX5oW9dY=' # 32 ბაიტიანი გასაღები
 
 def encrypt_data(data):
     f = Fernet(ENCRYPTION_KEY)

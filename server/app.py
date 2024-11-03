@@ -1,12 +1,10 @@
-import os
 import logging
-import bcrypt
 from flask import Flask, send_from_directory, jsonify, request, session, redirect, url_for
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 
 from config import Config
-from utils import login_required, load_data, save_data
+from utils import login_required, load_data, save_data, check_password
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -42,8 +40,8 @@ def login():
         return jsonify({"success": False, "message": "სახელი და პაროლი აუცილებელია"}), 400
 
     if username in users:
-        stored_hash = users[username].get('password_hash')
-        if stored_hash and bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+        stored_hashes = users[username].get('password_hash')
+        if check_password(password, stored_hashes):
             session['user_id'] = username
             logger.info(f"User {username} logged in successfully")
             return jsonify({"success": True, "message": "ავტორიზაცია წარმატებულია"})

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,7 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
+    <div id="auth-container" class="auth-container">
+        <div id="login-form" class="auth-form">
+            <h2>ავტორიზაცია</h2>
+            <input type="text" id="login-username" placeholder="მომხმარებელი">
+            <input type="password" id="login-password" placeholder="პაროლი">
+            <button onclick="login()">შესვლა</button>
+        </div>
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <div id="dashboard-container" class="container" style="display: none;">
         <nav class="sidebar">
             <div class="logo">
                 <i class="fas fa-desktop"></i>
@@ -31,7 +40,7 @@
                     </button>
                     <div class="search-wrapper">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="hostSearch" placeholder="Search..." oninput="searchHost()">
+                        <input type="text" id="hostSearch" placeholder="ძებნა..." oninput="searchHost()">
                     </div>
                 </div>
                 <div class="user-info">
@@ -40,28 +49,10 @@
                 </div>
             </div>
 
-            <div id="error-message" style="display: none;"></div>
-            <div id="message" style="display: none;"></div>
-
-            <div id="auth-forms">
-                <div id="login-form">
-                    <h2>Login</h2>
-                    <input type="text" id="login-username" placeholder="Username">
-                    <input type="password" id="login-password" placeholder="Password">
-                    <button onclick="login()">Login</button>
-                </div>
-                <div id="register-form">
-                    <h2>Register</h2>
-                    <input type="text" id="register-username" placeholder="Username">
-                    <input type="password" id="register-password" placeholder="Password">
-                    <button onclick="register()">Register</button>
-                </div>
-            </div>
-
-            <div id="computer-management" style="display: none;">
+            <div id="computer-management">
                 <div id="add-computer">
-                    <input type="text" id="hostname-input" placeholder="Enter hostname">
-                    <button id="add-button">Add Computer</button>
+                    <input type="text" id="hostname-input" placeholder="შეიყვანეთ ჰოსტის სახელი">
+                    <button id="add-hostname-button">დამატება</button>
                 </div>
                 <div id="computer-list"></div>
                 <div id="computer-data"></div>

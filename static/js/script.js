@@ -1,18 +1,47 @@
 const socket = io();
 
 document.addEventListener('DOMContentLoaded', () => {
-    const addButton = document.getElementById('add-button');
+    const addButton = document.getElementById('add-hostname-button');
     const hostnameInput = document.getElementById('hostname-input');
 
-    addButton.addEventListener('click', addHostname);
-    hostnameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addHostname();
-        }
-    });
-
-    fetchComputers();
+    if (addButton && hostnameInput) {
+        addButton.addEventListener('click', addHostname);
+        hostnameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addHostname();
+            }
+        });
+    }
 });
+
+async function login() {
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'flex';
+            initializeDashboard();
+        } else {
+            showError(data.message);
+        }
+    } catch (error) {
+        showError('ავტორიზაციის შეცდომა.');
+    }
+}
+
+function initializeDashboard() {
+    fetchComputers();
+}
 
 function addHostname() {
     const hostnameInput = document.getElementById('hostname-input');
@@ -25,35 +54,47 @@ function addHostname() {
     }
 }
 
-function fetchComputers() {
-    fetch('/get_computers')
-        .then(response => response.json())
-        .then(data => updateComputerList(data))
-        .catch(error => showError('კომპიუტერების სიის მიღება ვერ მოხერხდა.'));
-}
-
-function updateComputerList(data) {
-    const computerList = document.getElementById('computer-list');
-    computerList.innerHTML = '';
-
-    for (const hostname in data) {
-        const computerDiv = createComputerElement(hostname, data[hostname]);
-        computerList.appendChild(computerDiv);
+async function fetchComputers() {
+    try {
+        const response = await fetch('/get_computers');
+        const data = await response.json();
+        updateComputerList(data);
+    } catch (error) {
+        showError('კომპიუტერების სიის მიღება ვერ მოხერხდა.');
     }
 }
 
-function createComputerElement(hostname, data) {
-    const computerDiv = document.createElement('div');
-    computerDiv.className = 'computer fade-in';
-    computerDiv.innerHTML = `
-        <h3>${hostname} - სტატუსი: ${data.status}</h3>
-        <div class="computer-buttons">
+function updateComputerList(data) {
+    const hostGrid = document.getElementById('hostGrid');
+    hostGrid.innerHTML = '';
+
+    for (const hostname in data) {
+        const computerCard = createComputerCard(hostname, data[hostname]);
+        hostGrid.appendChild(computerCard);
+    }
+}
+
+function createComputerCard(hostname, data) {
+    const card = document.createElement('div');
+    card.className = 'host-card';
+    card.innerHTML = `
+        <h3>${hostname}</h3>
+        <span class="status-badge ${data.status}">${data.status}</span>
+        <div class="usage-info">
+            <p>CPU: ${data.cpu_usage}%</p>
+            <div class="usage-bar"><div class="fill" style="width: ${data.cpu_usage}%"></div></div>
+            <p>RAM: ${data.memory_usage}%</p>
+            <div class="usage-bar"><div class="fill" style="width: ${data.memory_usage}%"></div></div>
+            <p>Disk: ${data.disk_usage}%</p>
+            <div class="usage-bar"><div class="fill" style="width: ${data.disk_usage}%"></div></div>
+        </div>
+        <div class="card-buttons">
             <button class="edit-button" onclick="editHostname('${hostname}')">რედაქტირება</button>
             <button class="delete-button" onclick="deleteHostname('${hostname}')">წაშლა</button>
             <button class="info-button" onclick="requestComputerData('${hostname}')">ინფორმაცია</button>
         </div>
     `;
-    return computerDiv;
+    return card;
 }
 
 function editHostname(oldHostname) {
@@ -87,61 +128,18 @@ function showError(message) {
     }, 5000);
 }
 
-function login() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
+function searchHost() {
+    const searchTerm = document.getElementById('hostSearch').value.toLowerCase();
+    const hostCards = document.querySelectorAll('.host-card');
 
-    fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showMessage(data.message, 'success');
-            document.getElementById('auth-forms').style.display = 'none';
-            document.getElementById('computer-management').style.display = 'block';
+    hostCards.forEach(card => {
+        const hostname = card.querySelector('h3').textContent.toLowerCase();
+        if (hostname.includes(searchTerm)) {
+            card.style.display = 'block';
         } else {
-            showMessage(data.message, 'error');
+            card.style.display = 'none';
         }
-    })
-    .catch(error => showError('ავტორიზაციის შეცდომა.'));
-}
-
-function register() {
-    const username = document.getElementById('register-username').value;
-    const password = document.getElementById('register-password').value;
-
-    fetch('/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showMessage(data.message, 'success');
-        } else {
-            showMessage(data.message, 'error');
-        }
-    })
-    .catch(error => showError('რეგისტრაციის შეცდომა.'));
-}
-
-function showMessage(message, type) {
-    const messageElement = document.getElementById('message');
-    messageElement.textContent = message;
-    messageElement.className = type;
-    messageElement.style.display = 'block';
-
-    setTimeout(() => {
-        messageElement.style.display = 'none';
-    }, 5000);
+    });
 }
 
 socket.on('update_computer_list', (data) => {

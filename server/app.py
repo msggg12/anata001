@@ -19,7 +19,7 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 def emit_update_computers(computers):
-    socketio.emit('update_computers', computers)
+    socketio.emit('update_computer_list', computers)
 
 @app.route('/')
 @login_required
@@ -95,6 +95,7 @@ def handle_edit_hostname(data):
         computers[new_hostname] = computers.pop(old_hostname)
         save_data(Config.COMPUTERS_FILE, computers)
         emit_update_computers(computers)
+        emit('hostname_updated', {'success': True})
         logger.info(f"Hostname changed from {old_hostname} to {new_hostname}")
     else:
         logger.warning(f"Invalid hostname edit attempt: {old_hostname} to {new_hostname}")
@@ -109,9 +110,24 @@ def handle_delete_hostname(data):
         del computers[hostname]
         save_data(Config.COMPUTERS_FILE, computers)
         emit_update_computers(computers)
+        emit('hostname_deleted', {'success': True})
         logger.info(f"Hostname deleted: {hostname}")
     else:
         logger.warning(f"Attempt to delete non-existent hostname: {hostname}")
+        emit('error', {'message': 'ჰოსტის სახელი ვერ მოიძებნა'})
+
+@socketio.on('request_data')
+def handle_request_data(data):
+    computers = load_data(Config.COMPUTERS_FILE)
+    hostname = data.get('hostname')
+    if hostname in computers:
+        emit('request_data_for_host', {
+            'hostname': hostname,
+            'data': computers[hostname]
+        })
+        logger.info(f"Data requested for hostname: {hostname}")
+    else:
+        logger.warning(f"Data requested for non-existent hostname: {hostname}")
         emit('error', {'message': 'ჰოსტის სახელი ვერ მოიძებნა'})
 
 @socketio.on('update_computer_data')

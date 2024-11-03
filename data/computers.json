@@ -1,1 +1,26 @@
-{"test2": {"cpu_usage": 0, "memory_usage": 0, "disk_usage": 0, "status": "offline", "ip_address": "N/A", "anydesk_id": "N/A"}, "tsest": {"cpu_usage": 0, "memory_usage": 0, "disk_usage": 0, "status": "offline", "ip_address": "N/A", "anydesk_id": "N/A"}}
+{
+  "PC 1": {
+    "cpu_usage": 0,
+    "memory_usage": 0,
+    "disk_usage": 0,
+    "status": "offline",
+    "ip_address": "N/A",
+    "anydesk_id": "N/A"
+  },
+  "PC2": {
+    "cpu_usage": 0,
+    "memory_usage": 0,
+    "disk_usage": 0,
+    "status": "offline",
+    "ip_address": "N/A",
+    "anydesk_id": "N/A"
+  },
+  "PC3": {
+    "cpu_usage": 0,
+    "memory_usage": 0,
+    "disk_usage": 0,
+    "status": "offline",
+    "ip_address": "N/A",
+    "anydesk_id": "N/A"
+  }
+}

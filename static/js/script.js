@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    fetchComputers();
 });
 
 async function login() {
@@ -46,9 +48,11 @@ function initializeDashboard() {
 function addHostname() {
     const hostnameInput = document.getElementById('hostname-input');
     const hostname = hostnameInput.value.trim();
+
     if (hostname) {
         socket.emit('add_hostname', { hostname });
         hostnameInput.value = '';
+        fetchComputers();
     } else {
         showError('გთხოვთ, შეიყვანოთ ჰოსტის სახელი.');
     }
@@ -100,18 +104,51 @@ function createComputerCard(hostname, data) {
 function editHostname(oldHostname) {
     const newHostname = prompt('შეიყვანეთ ახალი ჰოსტის სახელი:', oldHostname);
     if (newHostname && newHostname !== oldHostname) {
-        socket.emit('edit_hostname', { oldHostname, newHostname });
+        socket.emit('edit_hostname', {
+            oldHostname: oldHostname,
+            newHostname: newHostname
+        });
+        fetchComputers();
     }
 }
 
 function deleteHostname(hostname) {
     if (confirm(`დარწმუნებული ხართ, რომ გსურთ წაშალოთ ${hostname}?`)) {
         socket.emit('delete_hostname', { hostname });
+        fetchComputers();
     }
 }
 
 function requestComputerData(hostname) {
     socket.emit('request_data', { hostname });
+
+    const computers = document.querySelectorAll('.host-card');
+    let computerData;
+
+    computers.forEach(card => {
+        if (card.querySelector('h3').textContent === hostname) {
+            const status = card.querySelector('.status-badge').textContent;
+            const cpu = card.querySelector('.usage-info p:nth-child(1)').textContent;
+            const ram = card.querySelector('.usage-info p:nth-child(3)').textContent;
+            const disk = card.querySelector('.usage-info p:nth-child(5)').textContent;
+
+            computerData = {
+                hostname: hostname,
+                data: {
+                    status: status,
+                    cpu_usage: cpu.replace('CPU: ', '').replace('%', ''),
+                    memory_usage: ram.replace('RAM: ', '').replace('%', ''),
+                    disk_usage: disk.replace('Disk: ', '').replace('%', ''),
+                    ip_address: 'N/A',
+                    anydesk_id: 'N/A'
+                }
+            };
+        }
+    });
+
+    if (computerData) {
+        socket.emit('request_data_for_host', computerData);
+    }
 }
 
 function showError(message) {
@@ -142,6 +179,7 @@ function searchHost() {
     });
 }
 
+// Socket event listeners
 socket.on('update_computer_list', (data) => {
     updateComputerList(data);
 });
@@ -158,4 +196,16 @@ socket.on('request_data_for_host', (data) => {
         <p>AnyDesk ID: ${data.data.anydesk_id}</p>
     `;
     computerData.classList.add('fade-in');
+});
+
+socket.on('error', (data) => {
+    showError(data.message);
+});
+
+socket.on('hostname_updated', (data) => {
+    fetchComputers();
+});
+
+socket.on('hostname_deleted', (data) => {
+    fetchComputers();
 });

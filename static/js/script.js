@@ -1,137 +1,117 @@
 const socket = io();
+let computers = {};
 
-document.addEventListener('DOMContentLoaded', () => {
-    const addButton = document.getElementById('add-hostname-button');
-    const hostnameInput = document.getElementById('hostname-input');
-
-    if (addButton && hostnameInput) {
-        addButton.addEventListener('click', addHostname);
-        hostnameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addHostname();
-            }
-        });
-    }
-});
-
-async function login() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-
-    try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        });
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('dashboard-container').style.display = 'flex';
-            initializeDashboard();
-        } else {
-            showError(data.message);
-        }
-    } catch (error) {
-        showError('ავტორიზაციის შეცდომა.');
+function addComputer(hostname) {
+    if (!computers[hostname]) {
+        computers[hostname] = {
+            status: 'offline',
+            cpu_usage: 0,
+            memory_usage: 0,
+            disk_usage: 0,
+            ip_address: 'N/A',
+            anydesk_id: 'N/A'
+        };
+        updateComputerList();
+        updateDashboard();
     }
 }
 
-function initializeDashboard() {
-    fetchComputers();
+function updateComputerData(data) {
+    computers[data.hostname] = data;
+    updateDashboard();
 }
 
-function addHostname() {
-    const hostnameInput = document.getElementById('hostname-input');
-    const hostname = hostnameInput.value.trim();
-    if (hostname) {
-        socket.emit('add_hostname', { hostname });
-        hostnameInput.value = '';
-    } else {
-        showError('გთხოვთ, შეიყვანოთ ჰოსტის სახელი.');
+function updateComputerList() {
+    const computerList = document.getElementById('computer-list');
+    computerList.innerHTML = '';
+    for (const hostname in computers) {
+        const computerItem = document.createElement('div');
+        computerItem.className = 'computer-item';
+        computerItem.textContent = hostname;
+        computerList.appendChild(computerItem);
     }
 }
 
-async function fetchComputers() {
-    try {
-        const response = await fetch('/get_computers');
-        const data = await response.json();
-        updateComputerList(data);
-    } catch (error) {
-        showError('კომპიუტერების სიის მიღება ვერ მოხერხდა.');
-    }
-}
-
-function updateComputerList(data) {
+function updateDashboard() {
     const hostGrid = document.getElementById('hostGrid');
     hostGrid.innerHTML = '';
-
-    for (const hostname in data) {
-        const computerCard = createComputerCard(hostname, data[hostname]);
-        hostGrid.appendChild(computerCard);
+    for (const [hostname, data] of Object.entries(computers)) {
+        const card = createHostCard(hostname, data);
+        hostGrid.appendChild(card);
     }
 }
 
-function createComputerCard(hostname, data) {
+function createHostCard(hostname, data) {
     const card = document.createElement('div');
     card.className = 'host-card';
     card.innerHTML = `
         <h3>${hostname}</h3>
         <span class="status-badge ${data.status}">${data.status}</span>
-        <div class="usage-info">
-            <p>CPU: ${data.cpu_usage}%</p>
-            <div class="usage-bar"><div class="fill" style="width: ${data.cpu_usage}%"></div></div>
-            <p>RAM: ${data.memory_usage}%</p>
-            <div class="usage-bar"><div class="fill" style="width: ${data.memory_usage}%"></div></div>
-            <p>Disk: ${data.disk_usage}%</p>
-            <div class="usage-bar"><div class="fill" style="width: ${data.disk_usage}%"></div></div>
+        <p>CPU: ${data.cpu_usage}%</p>
+        <div class="usage-bar">
+            <div class="fill" style="width: ${data.cpu_usage}%"></div>
+        </div>
+        <p>მეხსიერება: ${data.memory_usage}%</p>
+        <div class="usage-bar">
+            <div class="fill" style="width: ${data.memory_usage}%"></div>
+        </div>
+        <p>დისკი: ${data.disk_usage}%</p>
+        <div class="usage-bar">
+            <div class="fill" style="width: ${data.disk_usage}%"></div>
         </div>
         <div class="card-buttons">
-            <button class="edit-button" onclick="editHostname('${hostname}')">რედაქტირება</button>
-            <button class="delete-button" onclick="deleteHostname('${hostname}')">წაშლა</button>
-            <button class="info-button" onclick="requestComputerData('${hostname}')">ინფორმაცია</button>
+            <button class="check-btn" onclick="requestUpdate('${hostname}')">
+                <i class="fas fa-sync-alt"></i> შემოწმება
+            </button>
+            <button class="details-btn" onclick="showDetails('${hostname}')">
+                <i class="fas fa-info-circle"></i> დეტალები
+            </button>
+            <button class="anydesk-btn" onclick="openAnyDesk('${data.anydesk_id}')">
+                <i class="fas fa-desktop"></i> AnyDesk
+            </button>
         </div>
     `;
     return card;
 }
 
-function editHostname(oldHostname) {
-    const newHostname = prompt('შეიყვანეთ ახალი ჰოსტის სახელი:', oldHostname);
-    if (newHostname && newHostname !== oldHostname) {
-        socket.emit('edit_hostname', { oldHostname, newHostname });
-    }
+function requestUpdate(hostname) {
+    socket.emit('request_update', { hostname: hostname });
 }
 
-function deleteHostname(hostname) {
-    if (confirm(`დარწმუნებული ხართ, რომ გსურთ წაშალოთ ${hostname}?`)) {
-        socket.emit('delete_hostname', { hostname });
-    }
+function showDetails(hostname) {
+    const data = computers[hostname];
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>${hostname} - დეტალები</h3>
+            <div class="details-content">
+                <p>სტატუსი: ${data.status}</p>
+                <p>CPU: ${data.cpu_usage}%</p>
+                <p>მეხსიერება: ${data.memory_usage}%</p>
+                <p>დისკი: ${data.disk_usage}%</p>
+                <p>IP მისამართი: ${data.ip_address}</p>
+                <p>AnyDesk ID: ${data.anydesk_id}</p>
+            </div>
+            <button onclick="closeModal(this)">დახურვა</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
-function requestComputerData(hostname) {
-    socket.emit('request_data', { hostname });
+function closeModal(button) {
+    const modal = button.closest('.modal');
+    modal.remove();
 }
 
-function showError(message) {
-    const errorMessage = document.getElementById('error-message');
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-    errorMessage.classList.add('fade-in');
-
-    setTimeout(() => {
-        errorMessage.classList.remove('fade-in');
-        setTimeout(() => {
-            errorMessage.style.display = 'none';
-        }, 500);
-    }, 5000);
+function openAnyDesk(anydeskId) {
+    // აქ  შეგიძლიათ დაამატოთ AnyDesk-ის გახსნის ლოგიკა
+    console.log(`Opening AnyDesk for ID: ${anydeskId}`);
 }
 
 function searchHost() {
     const searchTerm = document.getElementById('hostSearch').value.toLowerCase();
     const hostCards = document.querySelectorAll('.host-card');
-
     hostCards.forEach(card => {
         const hostname = card.querySelector('h3').textContent.toLowerCase();
         if (hostname.includes(searchTerm)) {
@@ -142,20 +122,23 @@ function searchHost() {
     });
 }
 
-socket.on('update_computer_list', (data) => {
-    updateComputerList(data);
+document.getElementById('add-hostname-button').addEventListener('click', () => {
+    const hostnameInput = document.getElementById('hostname-input');
+    const hostname = hostnameInput.value.trim();
+    if (hostname) {
+        addComputer(hostname);
+        hostnameInput.value = '';
+    }
 });
 
-socket.on('request_data_for_host', (data) => {
-    const computerData = document.getElementById('computer-data');
-    computerData.innerHTML = `
-        <h3>${data.hostname} - დეტალური ინფორმაცია</h3>
-        <p>სტატუსი: ${data.data.status}</p>
-        <p>CPU გამოყენება: ${data.data.cpu_usage}%</p>
-        <p>მეხსიერების გამოყენება: ${data.data.memory_usage}%</p>
-        <p>დისკის გამოყენება: ${data.data.disk_usage}%</p>
-        <p>IP მისამართი: ${data.data.ip_address}</p>
-        <p>AnyDesk ID: ${data.data.anydesk_id}</p>
-    `;
-    computerData.classList.add('fade-in');
+socket.on('update_computer_data', (data) => {
+    updateComputerData(data);
+});
+
+// საწყისი მონაცემების ჩატვირთვა
+socket.emit('get_computers');
+
+socket.on('initial_computers', (initialComputers) => {
+    computers = initialComputers;
+    updateDashboard();
 });

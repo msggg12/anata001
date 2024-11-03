@@ -8,7 +8,7 @@ import os
 import logging
 from functools import wraps
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__, static_folder='../static', template_folder='../templates')
 app.config.from_object(Config)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")

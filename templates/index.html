@@ -1,42 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PC Monitoring Dashboard</title>
+    <title>PC მონიტორინგის დაფა</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div id="auth-container" class="auth-container">
-        <div id="login-form" class="auth-form">
-            <h2>ავტორიზაცია</h2>
-            <input type="text" id="login-username" placeholder="მომხმარებელი">
-            <input type="password" id="login-password" placeholder="პაროლი">
-            <button onclick="login()">შესვლა</button>
-        </div>
-        <div id="error-message" class="error-message"></div>
-    </div>
-
-    <div id="dashboard-container" class="container" style="display: none;">
+    <div id="dashboard-container" class="container">
         <nav class="sidebar">
             <div class="logo">
                 <i class="fas fa-desktop"></i>
                 <span>PC Monitor</span>
             </div>
             <ul class="nav-links">
-                <li class="active"><a href="#"><i class="fas fa-chart-line"></i>Dashboard</a></li>
-                <li><a href="#"><i class="fas fa-server"></i>Hosts</a></li>
-                <li><a href="#"><i class="fas fa-bell"></i>Alerts</a></li>
-                <li><a href="#"><i class="fas fa-history"></i>History</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i>Settings</a></li>
+                <li class="active"><a href="#"><i class="fas fa-chart-line"></i>დაფა</a></li>
+                <li><a href="#"><i class="fas fa-server"></i>ჰოსტები</a></li>
+                <li><a href="#"><i class="fas fa-bell"></i>შეტყობინებები</a></li>
+                <li><a href="#"><i class="fas fa-history"></i>ისტორია</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i>პარამეტრები</a></li>
             </ul>
         </nav>
         <main class="content">
             <div class="top-bar">
                 <div class="quick-actions">
                     <button id="add-button" class="action-btn">
-                        <i class="fas fa-plus"></i>
+                        <i class="fas fa-plus"></i> დამატება
                     </button>
                     <div class="search-wrapper">
                         <i class="fas fa-search"></i>
@@ -44,22 +34,23 @@
                     </div>
                 </div>
                 <div class="user-info">
-                    <span class="user-name">Admin</span>
-                    <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin">
+                    <span class="user-name">ადმინი</span>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="ადმინი">
                 </div>
             </div>
 
-            <div id="computer-management">
+            <div id="computer-management" class="management-section">
+                <h2>კომპიუტერების მართვა</h2>
                 <div id="add-computer">
                     <input type="text" id="hostname-input" placeholder="შეიყვანეთ ჰოსტის სახელი">
-                    <button id="add-hostname-button">დამატება</button>
+                    <button id="add-hostname-button" class="action-btn">დამატება</button>
                 </div>
-                <div id="computer-list"></div>
-                <div id="computer-data"></div>
+                <div id="computer-list" class="computer-list"></div>
+                <div id="computer-data" class="computer-data"></div>
             </div>
 
             <div class="dashboard-grid" id="hostGrid">
-                <!-- Host cards will be added here dynamically -->
+                <!-- ჰოსტების ბარათები დაემატება დინამიურად -->
             </div>
         </main>
     </div>

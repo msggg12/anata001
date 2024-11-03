@@ -1,14 +1,21 @@
-from flask import Flask, send_from_directory, jsonify, request, session
-from flask_socketio import SocketIO, emit
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from config import Config
-from utils import load_data, save_data, emit_update_computers
 import os
 import logging
 from functools import wraps
+import bcrypt
+from flask import Flask, send_from_directory, jsonify, request, session, redirect, url_for
+from flask_socketio import SocketIO, emit
+from flask_cors import CORS
+from werkzeug.security import check_password_hash
 
-app = Flask(__name__, static_folder='../static', template_folder='../templates')
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+    DEBUG = True
+    USERS_FILE = 'users.json'
+    COMPUTERS_FILE = 'computers.json'
+
+
+app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config.from_object(Config)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -21,15 +28,68 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            return jsonify({"success": False, "message": "ავტორიზაცია საჭიროა"}), 401
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
 
     return decorated_function
 
 
+def load_data(filename):
+    import json
+    try:
+        with open(filename, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error(f"File not found: {filename}")
+        return {}
+    except json.JSONDecodeError:
+        logger.error(f"Invalid JSON in file: {filename}")
+        return {}
+
+def save_data(filename, data):
+    import json
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+def emit_update_computers(computers):
+    socketio.emit('update_computers', computers)
+
+
 @app.route('/')
+@login_required
 def index():
     return send_from_directory(app.template_folder, 'index.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return send_from_directory(app.template_folder, 'login.html')
+
+    data = request.json
+    users = load_data(Config.USERS_FILE)
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"success": False, "message": "სახელი და პაროლი აუცილებელია"}), 400
+
+    if username in users:
+        stored_hash = users[username].get('password_hash')
+        if stored_hash and bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+            session['user_id'] = username
+            logger.info(f"User {username} logged in successfully")
+            return jsonify({"success": True, "message": "ავტორიზაცია წარმატებულია"})
+
+    logger.warning(f"Failed login attempt for user {username}")
+    return jsonify({"success": False, "message": "არასწორი მომხმარებელი ან პაროლი"}), 401
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
 
 
 @app.route('/get_computers')
@@ -41,45 +101,6 @@ def get_computers():
     except Exception as e:
         logger.error(f"Error getting computers: {str(e)}")
         return jsonify({"success": False, "message": "შეცდომა კომპიუტერების მიღებისას"}), 500
-
-
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.json
-    users = load_data(Config.USERS_FILE)
-    username = data.get('username')
-    password = data.get('password')
-
-    if not username or not password:
-        return jsonify({"success": False, "message": "სახელი და პაროლი აუცილებელია"}), 400
-
-    if username in users and check_password_hash(users[username]['password'], password):
-        session['user_id'] = username
-        logger.info(f"User {username} logged in successfully")
-        return jsonify({"success": True, "message": "ავტორიზაცია წარმატებულია"})
-    logger.warning(f"Failed login attempt for user {username}")
-    return jsonify({"success": False, "message": "არასწორი მომხმარებელი ან პაროლი"}), 401
-
-
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.json
-    users = load_data(Config.USERS_FILE)
-    username = data.get('username')
-    password = data.get('password')
-
-    if not username or not password:
-        return jsonify({"success": False, "message": "სახელი და პაროლი აუცილებელია"}), 400
-
-    if username in users:
-        logger.warning(f"Attempt to register existing username: {username}")
-        return jsonify({"success": False, "message": "მომხმარებელი უკვე არსებობს"}), 400
-
-    hashed_password = generate_password_hash(password)
-    users[username] = {"password": hashed_password}
-    save_data(Config.USERS_FILE, users)
-    logger.info(f"New user registered: {username}")
-    return jsonify({"success": True, "message": "რეგისტრაცია წარმატებით დასრულდა"})
 
 
 @socketio.on('add_hostname')
@@ -114,7 +135,6 @@ def handle_edit_hostname(data):
         computers[new_hostname] = computers.pop(old_hostname)
         save_data(Config.COMPUTERS_FILE, computers)
         emit_update_computers(computers)
-
         logger.info(f"Hostname changed from {old_hostname} to {new_hostname}")
     else:
         logger.warning(f"Invalid hostname edit attempt: {old_hostname} to {new_hostname}")

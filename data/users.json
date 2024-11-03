@@ -1,14 +1,1 @@
-{
-  "admin": {
-    "password": "$2b$12$5pmTLs/neOLUYaqvbVHfvuLc8Uzcy2bWT355l39wOKLy/9KoPhpe2",
-    "email": "datiashvilin@gmail.com",
-    "role": "admin",
-    "created_at": "2024-11-03T07:52:06.047987"
-  },
-  "tamtukela": {
-    "password": "$2b$12$IVw1BsD6EssdGO7Z4F3oKOVn5DElfxAFtUc/Yzu1hy3Mi4PH1ntPC",
-    "email": "tamtumta@gmail.com",
-    "role": "admin",
-    "created_at": "2024-11-03T07:52:06.304094"
-  }
-}
+{"admin": {"email": "datiashvilin@gmail.com", "role": "admin", "created_at": "2024-11-03T07:52:06.047987", "password_hash": "$2b$12$5pmTLs/neOLUYaqvbVHfvuLc8Uzcy2bWT355l39wOKLy/9KoPhpe2"}, "tamtukela": {"email": "tamtumta@gmail.com", "role": "admin", "created_at": "2024-11-03T07:52:06.304094", "password_hash": "$2b$12$IVw1BsD6EssdGO7Z4F3oKOVn5DElfxAFtUc/Yzu1hy3Mi4PH1ntPC"}}

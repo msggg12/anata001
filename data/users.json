@@ -1,5 +1,1 @@
-{
-  "admin": {
-    "password": "generate_password_hash('!bermedia12')"
-  }
-}
+{"admin": {"password": "generate_password_hash('!bermedia12')"}, "test": {"password": "pbkdf2:sha256:260000$F2NdV1ir7JPe9wXU$109ef16a07ea9a547712e1d3407dc6e168b714b4d2fadb89bdcbc0c259cf6c64"}}

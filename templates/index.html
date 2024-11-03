@@ -1,34 +1,79 @@
 <!DOCTYPE html>
-<html lang="ka">
+<!--suppress ALL -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>კომპიუტერების მართვის პანელი</title>
+    <title>PC Monitoring Dashboard</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <h1>კომპიუტერების მართვის პანელი</h1>
-    </header>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-desktop"></i>
+                <span>PC Monitor</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="#"><i class="fas fa-chart-line"></i>Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-server"></i>Hosts</a></li>
+                <li><a href="#"><i class="fas fa-bell"></i>Alerts</a></li>
+                <li><a href="#"><i class="fas fa-history"></i>History</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i>Settings</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <div class="top-bar">
+                <div class="quick-actions">
+                    <button id="add-button" class="action-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="hostSearch" placeholder="Search..." oninput="searchHost()">
+                    </div>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin</span>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin">
+                </div>
+            </div>
 
-    <main>
-        <div class="add-computer-form">
-            <input type="text" id="hostname-input" placeholder="შეიყვანეთ ახალი ჰოსტის სახელი" required>
-            <button id="add-button">დამატება</button>
-        </div>
+            <div id="error-message" style="display: none;"></div>
+            <div id="message" style="display: none;"></div>
 
-        <div id="error-message" class="error-message"></div>
+            <div id="auth-forms">
+                <div id="login-form">
+                    <h2>Login</h2>
+                    <input type="text" id="login-username" placeholder="Username">
+                    <input type="password" id="login-password" placeholder="Password">
+                    <button onclick="login()">Login</button>
+                </div>
+                <div id="register-form">
+                    <h2>Register</h2>
+                    <input type="text" id="register-username" placeholder="Username">
+                    <input type="password" id="register-password" placeholder="Password">
+                    <button onclick="register()">Register</button>
+                </div>
+            </div>
 
-        <div id="computer-list" class="computer-list">
-            <!-- კომპიუტერები დაემატება დინამიურად -->
-        </div>
+            <div id="computer-management" style="display: none;">
+                <div id="add-computer">
+                    <input type="text" id="hostname-input" placeholder="Enter hostname">
+                    <button id="add-button">Add Computer</button>
+                </div>
+                <div id="computer-list"></div>
+                <div id="computer-data"></div>
+            </div>
 
-        <div id="computer-data" class="computer-data">
-            <!-- არჩეული კომპიუტერის მონაცემები გამოჩნდება აქ -->
-        </div>
-    </main>
+            <div class="dashboard-grid" id="hostGrid">
+                <!-- Host cards will be added here dynamically -->
+            </div>
+        </main>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
     <script src="/static/js/script.js"></script>
 </body>
 </html>

@@ -1,66 +1,32 @@
 import os
 import logging
-from functools import wraps
 import bcrypt
 from flask import Flask, send_from_directory, jsonify, request, session, redirect, url_for
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
-from werkzeug.security import check_password_hash
 
+from config import Config
+from utils import login_required, load_data, save_data
 
-class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
-    DEBUG = True
-    USERS_FILE = 'users.json'
-    COMPUTERS_FILE = 'computers.json'
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-
-app = Flask(__name__, static_folder='static', template_folder='templates')
+# Initialize Flask app
+app = Flask(__name__,
+            static_folder='../static',
+            template_folder='../templates')
 app.config.from_object(Config)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
-def load_data(filename):
-    import json
-    try:
-        with open(filename, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        logger.error(f"File not found: {filename}")
-        return {}
-    except json.JSONDecodeError:
-        logger.error(f"Invalid JSON in file: {filename}")
-        return {}
-
-def save_data(filename, data):
-    import json
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=2)
-
-
 def emit_update_computers(computers):
     socketio.emit('update_computers', computers)
-
 
 @app.route('/')
 @login_required
 def index():
     return send_from_directory(app.template_folder, 'index.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -85,12 +51,10 @@ def login():
     logger.warning(f"Failed login attempt for user {username}")
     return jsonify({"success": False, "message": "არასწორი მომხმარებელი ან პაროლი"}), 401
 
-
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
-
 
 @app.route('/get_computers')
 @login_required
@@ -101,7 +65,6 @@ def get_computers():
     except Exception as e:
         logger.error(f"Error getting computers: {str(e)}")
         return jsonify({"success": False, "message": "შეცდომა კომპიუტერების მიღებისას"}), 500
-
 
 @socketio.on('add_hostname')
 @login_required
@@ -124,7 +87,6 @@ def handle_add_hostname(data):
         logger.warning(f"Invalid hostname addition attempt: {hostname}")
         emit('error', {'message': 'არასწორი ან არსებული ჰოსტის სახელი'})
 
-
 @socketio.on('edit_hostname')
 @login_required
 def handle_edit_hostname(data):
@@ -140,7 +102,6 @@ def handle_edit_hostname(data):
         logger.warning(f"Invalid hostname edit attempt: {old_hostname} to {new_hostname}")
         emit('error', {'message': 'არასწორი ჰოსტის სახელი'})
 
-
 @socketio.on('delete_hostname')
 @login_required
 def handle_delete_hostname(data):
@@ -154,7 +115,6 @@ def handle_delete_hostname(data):
     else:
         logger.warning(f"Attempt to delete non-existent hostname: {hostname}")
         emit('error', {'message': 'ჰოსტის სახელი ვერ მოიძებნა'})
-
 
 @socketio.on('update_computer_data')
 def handle_update_computer_data(data):
@@ -176,7 +136,6 @@ def handle_update_computer_data(data):
     else:
         logger.warning(f"Attempt to update non-existent hostname: {hostname}")
         emit('error', {'message': 'ჰოსტის სახელი ვერ მოიძებნა'})
-
 
 if __name__ == '__main__':
     socketio.run(app, debug=Config.DEBUG, host='0.0.0.0', port=5000)

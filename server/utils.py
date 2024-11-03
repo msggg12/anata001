@@ -1,18 +1,29 @@
 import json
-from flask_socketio import emit
+import logging
+from functools import wraps
+from flask import session, redirect, url_for
+
+logger = logging.getLogger(__name__)
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def load_data(filename):
     try:
-        with open(filename, 'r') as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
+        with open(filename, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error(f"File not found: {filename}")
+        return {}
+    except json.JSONDecodeError:
+        logger.error(f"Invalid JSON in file: {filename}")
         return {}
 
 def save_data(filename, data):
-    with open(filename, 'w') as file:
-        json.dump(data, file)
-
-def emit_update_computers(computers):
-    from config import Config
-    save_data(Config.COMPUTERS_FILE, computers)
-    emit('update_computer_list', computers, broadcast=True)
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=2)

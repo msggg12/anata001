@@ -4,6 +4,17 @@ import bcrypt
 import hashlib
 from functools import wraps
 from flask import session, redirect, url_for
+from cryptography.fernet import Fernet
+
+ENCRYPTION_KEY = b'YOUR_ENCRYPTION_KEY_HERE'  # 32 ბაიტიანი გასაღები
+
+def encrypt_data(data):
+    f = Fernet(ENCRYPTION_KEY)
+    return f.encrypt(json.dumps(data).encode()).decode()
+
+def decrypt_data(encrypted_data):
+    f = Fernet(ENCRYPTION_KEY)
+    return json.loads(f.decrypt(encrypted_data.encode()).decode())
 
 logger = logging.getLogger(__name__)
 

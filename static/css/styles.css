@@ -1,4 +1,3 @@
-
 :root {
     --primary-color: #2c3e50;
     --secondary-color: #3498db;
@@ -7,6 +6,18 @@
     --error-color: #ff4d4f;
     --success-color: #00a854;
     --anydesk-color: #ef4444;
+    --text-color: #333333;
+}
+
+.dark-mode {
+    --primary-color: #1a202c;
+    --secondary-color: #4299e1;
+    --background-color: #2d3748;
+    --card-color: #4a5568;
+    --error-color: #fc8181;
+    --success-color: #68d391;
+    --anydesk-color: #f56565;
+    --text-color: #e2e8f0;
 }
 
 * {
@@ -14,6 +25,12 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .container {
@@ -70,7 +87,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    background: white;
+    background: var(--card-color);
     padding: 10px 20px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -114,7 +131,14 @@
     padding: 10px 10px 10px 35px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    background: white;
+    background: var(--card-color);
+    color: var(--text-color);
+}
+
+.user-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .user-info {
@@ -136,7 +160,7 @@
 
 .dropbtn {
     background-color: transparent;
-    color: var(--primary-color);
+    color: var(--text-color);
     padding: 10px;
     font-size: 16px;
     border: none;
@@ -147,20 +171,20 @@
     display: none;
     position: absolute;
     right: 0;
-    background-color: #f9f9f9;
+    background-color: var(--card-color);
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
 }
 
 .dropdown-content a {
-    color: black;
+    color: var(--text-color);
     padding: 12px 16px;
     text-decoration: none;
     display: block;
 }
 
-.dropdown-content a:hover {background-color: #f1f1f1;}
+.dropdown-content a:hover {background-color: var(--secondary-color);}
 
 .dropdown:hover .dropdown-content {
     display: block;
@@ -194,7 +218,7 @@
 }
 
 .host-card h3 {
-    color: var(--primary-color);
+    color: var(--text-color);
     margin: 0;
 }
 
@@ -203,7 +227,6 @@
     padding: 5px 10px;
     border-radius: 15px;
     font-size: 14px;
-    
     margin-bottom: 10px;
 }
 
@@ -283,4 +306,6 @@
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 6px;
+    background: var(--card-color);
+    color: var(--text-color);
 }

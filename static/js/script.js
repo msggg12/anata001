@@ -2,15 +2,27 @@ const socket = io();
 
 document.addEventListener('DOMContentLoaded', () => {
     const addButton = document.getElementById('add-hostname-button');
+    const submitButton = document.getElementById('submit-hostname');
     const hostnameInput = document.getElementById('hostname-input');
+    const addComputerSection = document.getElementById('add-computer');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
 
-    if (addButton && hostnameInput) {
-        addButton.addEventListener('click', addHostname);
+    if (addButton && submitButton && hostnameInput && addComputerSection) {
+        addButton.addEventListener('click', () => {
+            addComputerSection.style.display = 'flex';
+            addButton.style.display = 'none';
+        });
+
+        submitButton.addEventListener('click', addHostname);
         hostnameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 addHostname();
             }
         });
+    }
+
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', toggleDarkMode);
     }
 
     fetchComputers();
@@ -20,6 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updateComputerList(updatedComputers);
     });
 });
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    updateDarkModeButton();
+}
+
+function updateDarkModeButton() {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    if (darkModeToggle) {
+        const icon = darkModeToggle.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.replace('fa-moon', 'fa-sun');
+        } else {
+            icon.classList.replace('fa-sun', 'fa-moon');
+        }
+    }
+}
 
 async function fetchComputers() {
     try {
@@ -31,7 +61,7 @@ async function fetchComputers() {
         updateComputerList(data);
     } catch (error) {
         console.error("Error fetching computers:", error);
-        showError('Unable to fetch the list of computers.');
+        showError('კომპიუტერების სიის მიღება ვერ მოხერხდა.');
     }
 }
 
@@ -40,7 +70,7 @@ function updateComputerList(data) {
     hostGrid.innerHTML = '';
 
     if (Object.keys(data).length === 0) {
-        hostGrid.innerHTML = '<p>No computers found.</p>';
+        hostGrid.innerHTML = '<p>კომპიუტერები ვერ მოიძებნა.</p>';
         return;
     }
 
@@ -60,24 +90,24 @@ function createComputerCard(hostname, data) {
             <div class="dropdown">
                 <button class="dropbtn"><i class="fas fa-ellipsis-v"></i></button>
                 <div class="dropdown-content">
-                    <a href="#" onclick="editHostname('${hostname}')">Edit</a>
-                    <a href="#" onclick="deleteHostname('${hostname}')">Delete</a>
+                    <a href="#" onclick="editHostname('${hostname}')">რედაქტირება</a>
+                    <a href="#" onclick="deleteHostname('${hostname}')">წაშლა</a>
                 </div>
             </div>
         </div>
-        <span class="status-badge ${status}">${status}</span>
+        <span class="status-badge ${status}">${status === 'online' ? 'ონლაინ' : 'ოფლაინ'}</span>
         <div class="usage-info">
             <p>CPU: ${data.cpu_usage || 'N/A'}%</p>
             <div class="usage-bar"><div class="fill" style="width: ${data.cpu_usage || 0}%"></div></div>
             <p>RAM: ${data.memory_usage || 'N/A'}%</p>
             <div class="usage-bar"><div class="fill" style="width: ${data.memory_usage || 0}%"></div></div>
-            <p>Disk: ${data.disk_usage || 'N/A'}%</p>
+            <p>დისკი: ${data.disk_usage || 'N/A'}%</p>
             <div class="usage-bar"><div class="fill" style="width: ${data.disk_usage || 0}%"></div></div>
         </div>
         <p>IP: ${data.ip_address || 'N/A'}</p>
         <p>AnyDesk ID: ${data.anydesk_id || 'N/A'}</p>
         <div class="card-buttons">
-            <button class="check-btn" onclick="checkHost('${hostname}')">Check</button>
+            <button class="check-btn" onclick="checkHost('${hostname}')">შემოწმება</button>
             <button class="anydesk-btn" onclick="connectToAnyDesk('${data.anydesk_id || ''}')">AnyDesk</button>
         </div>
     `;
@@ -94,24 +124,28 @@ function determineStatus(data) {
 
 function addHostname() {
     const hostnameInput = document.getElementById('hostname-input');
+    const addComputerSection = document.getElementById('add-computer');
+    const addButton = document.getElementById('add-hostname-button');
     const hostname = hostnameInput.value.trim();
     if (hostname) {
-        socket.emit('join', { hostname });
-        hostnameInput.value = ''; // Clear input
+        socket.emit('add_hostname', { hostname });
+        hostnameInput.value = ''; // გასუფთავება
+        addComputerSection.style.display = 'none';
+        addButton.style.display = 'inline-block';
     } else {
-        showError("Please enter a hostname.");
+        showError("გთხოვთ, შეიყვანოთ ჰოსტის სახელი.");
     }
 }
 
 function editHostname(oldHostname) {
-    const newHostname = prompt('Enter new hostname:', oldHostname);
+    const newHostname = prompt('შეიყვანეთ ახალი ჰოსტის სახელი:', oldHostname);
     if (newHostname && newHostname !== oldHostname) {
         socket.emit('edit_hostname', { oldHostname, newHostname });
     }
 }
 
 function deleteHostname(hostname) {
-    if (confirm(`Are you sure you want to delete ${hostname}?`)) {
+    if (confirm(`დარწმუნებული ხართ, რომ გსურთ წაშალოთ ${hostname}?`)) {
         socket.emit('delete_hostname', { hostname });
     }
 }
@@ -121,14 +155,12 @@ function connectToAnyDesk(anydesk_id) {
         const url = `anydesk:${anydesk_id}`;
         window.open(url);
     } else {
-        alert('No AnyDesk ID available.');
+        alert('AnyDesk ID არ არის ხელმისაწვდომი.');
     }
 }
 
 function checkHost(hostname) {
-    // Implement the check host functionality here
-    console.log(`Checking host: ${hostname}`);
-    // You can emit a socket event to request updated information from the server
+    console.log(`ჰოსტის შემოწმება: ${hostname}`);
     socket.emit('check_host', { hostname });
 }
 
@@ -153,4 +185,10 @@ function searchHost() {
         const hostname = card.querySelector('h3').textContent.toLowerCase();
         card.style.display = hostname.includes(searchTerm) ? 'block' : 'none';
     });
+}
+
+// შემოწმება შენახული მუქი რეჟიმის პრეფერენციისთვის
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+    updateDarkModeButton();
 }

@@ -1,44 +1,5 @@
 {
-  "PC 1": {
-    "cpu_usage": 0,
-    "memory_usage": 0,
-    "disk_usage": 0,
-    "status": "offline",
-    "ip_address": "N/A",
-    "anydesk_id": "N/A"
-  },
-  "PC2": {
-    "cpu_usage": 0,
-    "memory_usage": 0,
-    "disk_usage": 0,
-    "status": "offline",
-    "ip_address": "N/A",
-    "anydesk_id": "N/A"
-  },
-  "PC3": {
-    "cpu_usage": 0,
-    "memory_usage": 0,
-    "disk_usage": 0,
-    "status": "offline",
-    "ip_address": "N/A",
-    "anydesk_id": "N/A"
-  },
-  "dets": {
-    "cpu_usage": 0,
-    "memory_usage": 0,
-    "disk_usage": 0,
-    "status": "offline",
-    "ip_address": "N/A",
-    "anydesk_id": "N/A"
-  },
-  "ds\\": {
-    "cpu_usage": 0,
-    "memory_usage": 0,
-    "disk_usage": 0,
-    "status": "offline",
-    "ip_address": "N/A",
-    "anydesk_id": "N/A"
-  },
+
   "NIKS0n": {
     "status": "online",
     "cpu_usage": 5.1,

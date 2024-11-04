@@ -25,7 +25,7 @@
         <main class="content">
             <div class="top-bar">
                 <div class="quick-actions">
-                    <button id="add-button" class="action-btn">
+                    <button id="add-hostname-button" class="action-btn">
                         <i class="fas fa-plus"></i> დამატება
                     </button>
                     <div class="search-wrapper">
@@ -36,6 +36,12 @@
                 <div class="user-info">
                     <span class="user-name">ადმინი</span>
                     <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="ადმინი">
+                    <div class="dropdown">
+                        <button class="dropbtn"><i class="fas fa-chevron-down"></i></button>
+                        <div class="dropdown-content">
+                            <a href="/logout" id="logout-button"><i class="fas fa-sign-out-alt"></i> გამოსვლა</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -43,14 +49,12 @@
                 <h2>კომპიუტერების მართვა</h2>
                 <div id="add-computer">
                     <input type="text" id="hostname-input" placeholder="შეიყვანეთ ჰოსტის სახელი">
-                    <button id="add-hostname-button" class="action-btn">დამატება</button>
                 </div>
-                <div id="computer-list" class="computer-list"></div>
-                <div id="computer-data" class="computer-data"></div>
+                <div id="error-message" class="error-message" style="display:none;"></div>
             </div>
 
-            <div class="dashboard-grid" id="hostGrid">
-                <!-- ჰოსტების ბარათები დაემატება დინამიურად -->
+            <div id="hostGrid" class="dashboard-grid">
+                <!-- Host cards will be dynamically added here -->
             </div>
         </main>
     </div>

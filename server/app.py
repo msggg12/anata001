@@ -3,6 +3,7 @@ from flask import Flask, send_from_directory, jsonify, request, session, redirec
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import json
+import subprocess  # For handling AnyDesk connection
 
 from config import Config
 from utils import login_required, load_data, save_data, check_password
@@ -81,10 +82,7 @@ def handle_join(data):
 @socketio.on('update_computer_data')
 def handle_update_computer_data(data):
     try:
-        # Direct access to system info since we're not encrypting now
-        system_info = data  # The data is already a dictionary
-
-        # Log and save data
+        system_info = data
         logger.info(f"Received update for {system_info['hostname']}")
         computers = load_data(Config.COMPUTERS_FILE)
         computers[system_info['hostname']] = {
@@ -100,8 +98,47 @@ def handle_update_computer_data(data):
 
     except Exception as e:
         logger.error(f"Error updating computer data: {str(e)}")
-        logger.error(f"Received data: {data}")  # Log the received data
         emit('error', {'message': 'Error updating data'})
+
+
+@socketio.on('delete_hostname')
+def handle_delete_hostname(data):
+    hostname = data.get('hostname')
+    try:
+        computers = load_data(Config.COMPUTERS_FILE)
+        if hostname in computers:
+            del computers[hostname]
+            save_data(Config.COMPUTERS_FILE, computers)
+            emit_update_computers(computers)
+    except Exception as e:
+        logger.error(f"Error deleting hostname {hostname}: {str(e)}")
+        emit('error', {'message': 'Error deleting hostname'})
+
+
+@socketio.on('edit_hostname')
+def handle_edit_hostname(data):
+    old_hostname = data.get('oldHostname')
+    new_hostname = data.get('newHostname')
+    try:
+        computers = load_data(Config.COMPUTERS_FILE)
+        if old_hostname in computers:
+            computers[new_hostname] = computers.pop(old_hostname)
+            save_data(Config.COMPUTERS_FILE, computers)
+            emit_update_computers(computers)
+    except Exception as e:
+        logger.error(f"Error editing hostname {old_hostname}: {str(e)}")
+        emit('error', {'message': 'Error editing hostname'})
+
+
+@socketio.on('connect_anydesk')
+def handle_connect_anydesk(data):
+    anydesk_id = data.get('anydesk_id')
+    try:
+        subprocess.Popen(['C:\\Program Files (x86)\\AnyDesk\\AnyDesk.exe', anydesk_id])
+    except Exception as e:
+        logger.error(f"Error connecting to AnyDesk ID {anydesk_id}: {str(e)}")
+        emit('error', {'message': 'Error connecting to AnyDesk'})
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=Config.DEBUG, host='0.0.0.0', port=5000)

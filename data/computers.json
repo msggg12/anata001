@@ -2,7 +2,7 @@
   "NIKS0n": {
     "static": {
       "hostname": "NIKS0n",
-      "ip_address": "192.168.0.4",
+      "ip_address": "192.168.56.1",
       "cpu_count": 12,
       "cpu_freq": 1700.0,
       "memory_total": 5979500544,
@@ -11,11 +11,11 @@
     },
     "dynamic": {
       "hostname": "NIKS0n",
-      "cpu_usage": 19.9,
-      "memory_usage": 88.0,
+      "cpu_usage": 9.9,
+      "memory_usage": 92.1,
       "disk_usage": 51.1,
-      "network_usage": 1896403781,
-      "last_update": "2024-11-05T14:00:09.933865"
+      "network_usage": 2131470640,
+      "last_update": "2024-11-05T15:33:04.161764"
     }
   }
 }

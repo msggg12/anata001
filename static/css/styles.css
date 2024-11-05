@@ -7,6 +7,7 @@
     --success-color: #00a854;
     --anydesk-color: #ef4444;
     --text-color: #333333;
+    --warning-color: #faad14;
 }
 
 .dark-mode {
@@ -18,6 +19,7 @@
     --success-color: #68d391;
     --anydesk-color: #f56565;
     --text-color: #e2e8f0;
+    --warning-color: #fbd38d;
 }
 
 * {
@@ -259,8 +261,19 @@ body {
 
 .usage-bar .fill {
     height: 100%;
-    background: var(--secondary-color);
     transition: width 0.3s ease;
+}
+
+.fill.green {
+    background: var(--success-color);
+}
+
+.fill.yellow {
+    background: var(--warning-color);
+}
+
+.fill.red {
+    background: var(--error-color);
 }
 
 .card-buttons {
@@ -320,7 +333,7 @@ body {
     color: var(--text-color);
 }
 
-/* მოდალური ფანჯრის სტილები */
+/* Modal styles */
 .modal {
     display: none;
     position: fixed;
@@ -365,4 +378,16 @@ body {
 
 #hostInfoContent p {
     margin-bottom: 10px;
+}
+
+.green {
+    color: var(--success-color);
+}
+
+.yellow {
+    color: var(--warning-color);
+}
+
+.red {
+    color: var(--error-color);
 }

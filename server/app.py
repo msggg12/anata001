@@ -61,16 +61,27 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
+
 @app.route('/get_computers')
 @login_required
 def get_computers():
     try:
         computers = load_data(Config.COMPUTERS_FILE)
-        logger.info(f"Sending computers data: {computers}")
+        for hostname, data in computers.items():
+            cpu_usage = data.get('dynamic', {}).get('cpu_usage', 0)  # CPU-ის მონაცემი, 0 თუ ცარიელია
+            if cpu_usage < 50:
+                data['color'] = 'green'
+            elif 50 <= cpu_usage < 80:
+                data['color'] = 'yellow'
+            else:
+                data['color'] = 'red'
+
+        logger.info(f"Sending colored computers data: {computers}")
         return jsonify(computers)
     except Exception as e:
         logger.error(f"Error getting computers: {str(e)}")
         return jsonify({"success": False, "message": "შეცდომა კომპიუტერების მიღებისას"}), 500
+
 
 @app.route('/get_host_info/<hostname>')
 @login_required

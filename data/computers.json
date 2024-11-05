@@ -1,12 +1,4 @@
 {
-  "ds\\": {
-    "cpu_usage": 0,
-    "memory_usage": 0,
-    "disk_usage": 0,
-    "status": "offline",
-    "ip_address": "N/A",
-    "anydesk_id": "N/A"
-  },
   "NIKS0n": {
     "static": {
       "hostname": "NIKS0n",
@@ -18,13 +10,12 @@
       "anydesk_id": "1323490944"
     },
     "dynamic": {
-      "status": "unknown",
-      "cpu_usage": null,
-      "memory_usage": null,
-      "disk_usage": null,
-      "ip_address": null,
-      "anydesk_id": null,
-      "last_update": "2024-11-05T13:09:53.282879"
+      "hostname": "NIKS0n",
+      "cpu_usage": 19.9,
+      "memory_usage": 88.0,
+      "disk_usage": 51.1,
+      "network_usage": 1896403781,
+      "last_update": "2024-11-05T14:00:09.933865"
     }
   }
 }

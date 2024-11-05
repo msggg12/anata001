@@ -17,8 +17,7 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 def emit_update_computers(computers):
-    encrypted_computers = encrypt_data(computers)
-    socketio.emit('update_computer_list', encrypted_computers)
+    socketio.emit('update_computer_list', computers)
 
 def clean_computer_data():
     computers = load_data(Config.COMPUTERS_FILE)
@@ -68,11 +67,25 @@ def get_computers():
     try:
         computers = load_data(Config.COMPUTERS_FILE)
         logger.info(f"Sending computers data: {computers}")
-        encrypted_computers = encrypt_data(computers)
-        return jsonify(encrypted_computers)
+        return jsonify(computers)
     except Exception as e:
         logger.error(f"Error getting computers: {str(e)}")
         return jsonify({"success": False, "message": "შეცდომა კომპიუტერების მიღებისას"}), 500
+
+@app.route('/get_host_info/<hostname>')
+@login_required
+def get_host_info(hostname):
+    try:
+        computers = load_data(Config.COMPUTERS_FILE)
+        if hostname in computers:
+            host_info = computers[hostname]
+            host_info['hostname'] = hostname
+            return jsonify({"success": True, "info": host_info})
+        else:
+            return jsonify({"success": False, "message": "ჰოსტი ვერ მოიძებნა"}), 404
+    except Exception as e:
+        logger.error(f"Error getting host info: {str(e)}")
+        return jsonify({"success": False, "message": "შეცდომა ჰოსტის ინფორმაციის მიღებისას"}), 500
 
 @socketio.on('join')
 def handle_join(encrypted_data):
@@ -93,11 +106,11 @@ def handle_join(encrypted_data):
             logger.info(f"Existing computer reconnected: {hostname}")
 
         save_data(Config.COMPUTERS_FILE, computers)
-        emit('status', encrypt_data({'message': f'{hostname} connected'}))
+        emit('status', {'message': f'{hostname} connected'})
         emit_update_computers(computers)
     except Exception as e:
         logger.error(f"Error handling join: {str(e)}")
-        emit('error', encrypt_data({'message': 'Error handling join'}))
+        emit('error', {'message': 'Error handling join'})
 
 @socketio.on('update_computer_data')
 def handle_update_computer_data(encrypted_data):
@@ -115,15 +128,8 @@ def handle_update_computer_data(encrypted_data):
             if 'static' in system_info:
                 computers[hostname]['static'] = system_info['static']
 
-            computers[hostname]['dynamic'] = {
-                'status': system_info.get('status', 'unknown'),
-                'cpu_usage': system_info.get('cpu_usage'),
-                'memory_usage': system_info.get('memory_usage'),
-                'disk_usage': system_info.get('disk_usage'),
-                'ip_address': system_info.get('ip_address'),
-                'anydesk_id': system_info.get('anydesk_id'),
-                'last_update': datetime.now().isoformat()
-            }
+            computers[hostname]['dynamic'] = system_info.get('dynamic', {})
+            computers[hostname]['dynamic']['last_update'] = datetime.now().isoformat()
 
             save_data(Config.COMPUTERS_FILE, computers)
             emit_update_computers(computers)
@@ -132,54 +138,63 @@ def handle_update_computer_data(encrypted_data):
 
     except Exception as e:
         logger.error(f"Error updating computer data: {str(e)}")
-        emit('error', encrypt_data({'message': 'Error updating data'}))
+        emit('error', {'message': 'Error updating data'})
 
 @socketio.on('restart_host')
-def handle_restart_host(encrypted_data):
+def handle_restart_host(data):
     try:
-        data = decrypt_data(encrypted_data)
         hostname = data.get('hostname')
         encrypted_command = encrypt_data({'hostname': hostname})
         socketio.emit('restart_command', encrypted_command, room=hostname)
         logger.info(f"Restart command sent to {hostname}")
         emit('restart_result',
-             encrypt_data({'success': True, 'message': f'{hostname}-ზე გაიგზავნა გადატვირთვის ბრძანება'}))
+             {'success': True, 'message': f'{hostname}-ზე გაიგზავნა გადატვირთვის ბრძანება'})
     except Exception as e:
         logger.error(f"Error sending restart command: {str(e)}")
         emit('restart_result',
-             encrypt_data({'success': False, 'message': 'შეცდომა გადატვირთვის ბრძანების გაგზავნისას'}))
+             {'success': False, 'message': 'შეცდომა გადატვირთვის ბრძანების გაგზავნისას'})
 
 @socketio.on('check_host')
-def handle_check_host(encrypted_data):
+def handle_check_host(data):
     try:
-        data = decrypt_data(encrypted_data)
         hostname = data.get('hostname')
-        encrypted_request = encrypt_data({'hostname': hostname})
-        socketio.emit('request_update', encrypted_request, room=hostname)
-        logger.info(f"Update request sent to {hostname}")
+        computers = load_data(Config.COMPUTERS_FILE)
+        if hostname in computers:
+            encrypted_request = encrypt_data({'hostname': hostname})
+            socketio.emit('request_update', encrypted_request, room=hostname)
+            logger.info(f"Check request sent to {hostname}")
+            emit('check_result',
+                 {'success': True, 'message': f'{hostname}-ზე გაიგზავნა შემოწმების მოთხოვნა'})
+        else:
+            logger.warning(f"Check request for unknown host: {hostname}")
+            emit('check_result',
+                 {'success': False, 'message': f'ჰოსტი {hostname} ვერ მოიძებნა'})
     except Exception as e:
-        logger.error(f"Error requesting update: {str(e)}")
-        emit('error', encrypt_data({'message': 'შეცდომა განახლების მოთხოვნისას'}))
+        logger.error(f"Error sending check request: {str(e)}")
+        emit('check_result',
+             {'success': False, 'message': 'შეცდომა შემოწმების მოთხოვნის გაგზავნისას'})
 
 @socketio.on('delete_host')
-def handle_delete_host(encrypted_data):
+def handle_delete_host(data):
     try:
-        data = decrypt_data(encrypted_data)
         hostname = data.get('hostname')
         computers = load_data(Config.COMPUTERS_FILE)
         if hostname in computers:
             del computers[hostname]
             save_data(Config.COMPUTERS_FILE, computers)
+            logger.info(f"Host deleted: {hostname}")
+            emit('delete_result',
+                 {'success': True, 'message': f'{hostname} წარმატებით წაიშალა'})
             emit_update_computers(computers)
-            logger.info(f"Deleted host: {hostname}")
-            emit('delete_result', encrypt_data({'success': True, 'message': f'{hostname} წაიშალა'}))
         else:
-            emit('delete_result', encrypt_data({'success': False, 'message': f'{hostname} არ მოიძებნა'}))
-            logger.warning(f"Attempted to delete unknown host: {hostname}")
+            logger.warning(f"Delete request for unknown host: {hostname}")
+            emit('delete_result',
+                 {'success': False, 'message': f'ჰოსტი {hostname} ვერ მოიძებნა'})
     except Exception as e:
         logger.error(f"Error deleting host: {str(e)}")
-        emit('delete_result', encrypt_data({'success': False, 'message': 'შეცდომა მასივის წაშლისას'}))
+        emit('delete_result',
+             {'success': False, 'message': 'შეცდომა ჰოსტის წაშლისას'})
 
 if __name__ == '__main__':
-    clean_computer_data()  # Clean the computer data before starting the app
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    clean_computer_data()
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)

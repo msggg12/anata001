@@ -6,5 +6,25 @@
     "status": "offline",
     "ip_address": "N/A",
     "anydesk_id": "N/A"
+  },
+  "NIKS0n": {
+    "static": {
+      "hostname": "NIKS0n",
+      "ip_address": "192.168.0.4",
+      "cpu_count": 12,
+      "cpu_freq": 1700.0,
+      "memory_total": 5979500544,
+      "disk_space_total": 511244759040,
+      "anydesk_id": "1323490944"
+    },
+    "dynamic": {
+      "status": "unknown",
+      "cpu_usage": null,
+      "memory_usage": null,
+      "disk_usage": null,
+      "ip_address": null,
+      "anydesk_id": null,
+      "last_update": "2024-11-05T13:09:53.282879"
+    }
   }
 }

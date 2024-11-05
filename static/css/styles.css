@@ -58,7 +58,7 @@ body {
 }
 
 .nav-links li {
-    padding: 15px;
+    padding: 10px;
     margin: 5px 0;
     border-radius: 8px;
     transition: 0.3s;
@@ -95,7 +95,7 @@ body {
 
 .quick-actions {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     align-items: center;
 }
 
@@ -103,10 +103,18 @@ body {
     background: var(--secondary-color);
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
     transition: 0.3s;
+}
+
+.action-btn i {
+    font-size: 16px;
 }
 
 .action-btn:hover {
@@ -192,14 +200,14 @@ body {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px 0;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 15px 0;
 }
 
 .host-card {
     background: var(--card-color);
-    padding: 20px;
+    padding: 15px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: 0.3s;
@@ -219,14 +227,15 @@ body {
 
 .host-card h3 {
     color: var(--text-color);
+    font-size: 18px;
     margin: 0;
 }
 
 .status-badge {
     display: inline-block;
-    padding: 5px 10px;
+    padding: 4px 8px;
     border-radius: 15px;
-    font-size: 14px;
+    font-size: 13px;
     margin-bottom: 10px;
 }
 
@@ -242,7 +251,7 @@ body {
 
 .usage-bar {
     background: #eee;
-    height: 8px;
+    height: 6px;
     border-radius: 4px;
     margin: 8px 0;
     overflow: hidden;
@@ -256,13 +265,13 @@ body {
 
 .card-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-top: 15px;
 }
 
 .check-btn, .anydesk-btn {
     flex: 1;
-    padding: 8px;
+    padding: 6px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -270,6 +279,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 5px;
+    font-size: 13px;
     transition: 0.3s;
 }
 
@@ -297,7 +307,7 @@ body {
 
 #add-computer {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 15px;
 }
 

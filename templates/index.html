@@ -6,66 +6,62 @@
     <title>PC მონიტორინგის დაფა</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
 </head>
 <body>
     <div id="dashboard-container" class="container">
-        <nav class="sidebar">
+        <!-- გვერდითი პანელი -->
+        <nav class="sidebar" aria-label="მთავარი ნავიგაცია">
             <div class="logo">
-                <i class="fas fa-desktop"></i>
-                <span>PC Monitor</span>
+                <i class="fas fa-desktop" aria-hidden="true"></i>
+                <span>PC მონიტორინგი</span>
             </div>
             <ul class="nav-links">
-                <li class="active"><a href="#"><i class="fas fa-chart-line"></i>დაფა</a></li>
-                <li><a href="#"><i class="fas fa-server"></i>ჰოსტები</a></li>
-                <li><a href="#"><i class="fas fa-bell"></i>შეტყობინებები</a></li>
-                <li><a href="#"><i class="fas fa-history"></i>ისტორია</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i>პარამეტრები</a></li>
+                <li class="active"><a href="#dashboard" aria-current="page"><i class="fas fa-chart-line" aria-hidden="true"></i> დაფა</a></li>
+                <li><a href="#hosts"><i class="fas fa-server" aria-hidden="true"></i> ჰოსტები</a></li>
+                <li><a href="#notifications"><i class="fas fa-bell" aria-hidden="true"></i> შეტყობინებები</a></li>
+                <li><a href="#history"><i class="fas fa-history" aria-hidden="true"></i> ისტორია</a></li>
+                <li><a href="#settings"><i class="fas fa-cog" aria-hidden="true"></i> პარამეტრები</a></li>
             </ul>
         </nav>
+
+        <!-- მთავარი შიგთავსი -->
         <main class="content">
             <div class="top-bar">
-                <div class="quick-actions">
-                    <button id="add-hostname-button" class="action-btn">
-                        <i class="fas fa-plus"></i> დამატება
-                    </button>
-                    <div class="search-wrapper">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="hostSearch" placeholder="ძებნა..." oninput="searchHost()">
-                    </div>
+                <div class="search-wrapper">
+                    <label for="hostSearch" class="sr-only">ჰოსტის ძებნა</label>
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" id="hostSearch" placeholder="ძებნა..." aria-label="ჰოსტის ძებნა">
                 </div>
                 <div class="user-controls">
-                    <button id="dark-mode-toggle" class="action-btn">
-                        <i class="fas fa-moon"></i>
+                    <button id="dark-mode-toggle" class="action-btn" aria-label="მუქი რეჟიმის გადართვა">
+                        <i class="fas fa-moon" aria-hidden="true"></i>
                     </button>
                     <div class="user-info">
                         <span class="user-name">ადმინი</span>
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="ადმინი">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="ადმინის ავატარი">
                         <div class="dropdown">
-                            <button class="dropbtn"><i class="fas fa-chevron-down"></i></button>
+                            <button class="dropbtn" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                                <span class="sr-only">მომხმარებლის მენიუ</span>
+                            </button>
                             <div class="dropdown-content">
-                                <a href="/logout" id="logout-button"><i class="fas fa-sign-out-alt"></i> გამოსვლა</a>
+                                <a href="/logout" id="logout-button"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> გამოსვლა</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="computer-management" class="management-section">
-                <h2>კომპიუტერების მართვა</h2>
-                <div id="add-computer" style="display: none;">
-                    <input type="text" id="hostname-input" placeholder="შეიყვანეთ ჰოსტის სახელი">
-                    <button id="submit-hostname" class="action-btn">დამატება</button>
-                </div>
-                <div id="error-message" class="error-message" style="display:none;"></div>
-            </div>
+            <div id="error-message" class="error-message" role="alert" aria-live="assertive" style="display:none;"></div>
 
-            <div id="hostGrid" class="dashboard-grid">
-                <!-- Host cards will be dynamically added here -->
+            <!-- ჰოსტების ბარათების გალერეა -->
+            <div id="hostGrid" class="dashboard-grid" aria-label="ჰოსტების სია">
+                <!-- ჰოსტების ბარათები დამატებული იქნება დინამიურად -->
             </div>
         </main>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
     <script src="/static/js/script.js"></script>
 </body>
 </html>

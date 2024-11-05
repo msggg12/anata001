@@ -1,25 +1,8 @@
 const socket = io();
+let isLoading = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const addButton = document.getElementById('add-hostname-button');
-    const submitButton = document.getElementById('submit-hostname');
-    const hostnameInput = document.getElementById('hostname-input');
-    const addComputerSection = document.getElementById('add-computer');
     const darkModeToggle = document.getElementById('dark-mode-toggle');
-
-    if (addButton && submitButton && hostnameInput && addComputerSection) {
-        addButton.addEventListener('click', () => {
-            addComputerSection.style.display = 'flex';
-            addButton.style.display = 'none';
-        });
-
-        submitButton.addEventListener('click', addHostname);
-        hostnameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addHostname();
-            }
-        });
-    }
 
     if (darkModeToggle) {
         darkModeToggle.addEventListener('click', toggleDarkMode);
@@ -27,9 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchComputers();
 
-    // Listen for updates from the server
-    socket.on('update_computer_list', (updatedComputers) => {
-        updateComputerList(updatedComputers);
+    socket.on('update_computer_list', (encryptedComputers) => {
+        try {
+            const decryptedData = JSON.parse(decryptData(encryptedComputers));
+            console.log("Received updated computer list:", decryptedData);
+            updateComputerList(decryptedData);
+        } catch (error) {
+            console.error("Error updating computer list:", error);
+            showError('Failed to update the computer list.');
+        }
     });
 });
 
@@ -52,65 +41,101 @@ function updateDarkModeButton() {
 }
 
 async function fetchComputers() {
+    if (isLoading) return;
+    isLoading = true;
+
     try {
+        console.log("Fetching computers...");
         const response = await fetch('/get_computers');
-        const data = await response.json();
-        if (data.success === false) {
-            throw new Error(data.message);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        updateComputerList(data);
+
+        const encryptedData = await response.text();
+        console.log("Received encrypted data:", encryptedData);
+        if (!encryptedData) {
+            throw new Error('Received empty data');
+        }
+
+        const decryptedData = JSON.parse(decryptData(encryptedData));
+        console.log("Decrypted data:", decryptedData);
+        updateComputerList(decryptedData);
     } catch (error) {
         console.error("Error fetching computers:", error);
-        showError('კომპიუტერების სიის მიღება ვერ მოხერხდა.');
+        showError('Failed to retrieve computer list.');
+    } finally {
+        isLoading = false;
     }
 }
 
 function updateComputerList(data) {
+    console.log("Updating computer list with data:", data);
     const hostGrid = document.getElementById('hostGrid');
     hostGrid.innerHTML = '';
 
-    if (Object.keys(data).length === 0) {
-        hostGrid.innerHTML = '<p>კომპიუტერები ვერ მოიძებნა.</p>';
+    if (typeof data !== 'object' || Object.keys(data).length === 0) {
+        console.log("No computers found or invalid data.");
+        hostGrid.innerHTML = '<p>No computers found.</p>';
         return;
     }
 
     for (const hostname in data) {
-        const computerCard = createComputerCard(hostname, data[hostname]);
-        hostGrid.appendChild(computerCard);
+        if (data.hasOwnProperty(hostname) && hostname) {
+            console.log(`Processing ${hostname}:`, data[hostname]);
+            const computerData = {
+                ...data[hostname].static,
+                ...data[hostname].dynamic
+            };
+            const computerCard = createComputerCard(hostname, computerData);
+            if (computerCard) {
+                hostGrid.appendChild(computerCard);
+            } else {
+                console.log(`Failed to create card for ${hostname}`);
+            }
+        }
     }
 }
 
 function createComputerCard(hostname, data) {
+    console.log("Creating card:", hostname, data);
+    if (!hostname) {
+        console.error("Attempt to create card for empty hostname");
+        return null;
+    }
+
     const card = document.createElement('div');
     card.className = 'host-card';
     const status = determineStatus(data);
     card.innerHTML = `
         <div class="card-header">
-            <h3>${hostname}</h3>
+            <h3><i class="fas fa-desktop"></i> ${hostname}</h3>
             <div class="dropdown">
                 <button class="dropbtn"><i class="fas fa-ellipsis-v"></i></button>
                 <div class="dropdown-content">
-                    <a href="#" onclick="editHostname('${hostname}')">რედაქტირება</a>
-                    <a href="#" onclick="deleteHostname('${hostname}')">წაშლა</a>
+                    <a href="#" onclick="restartHost('${hostname}')"><i class="fas fa-redo"></i> Restart</a>
+                    <a href="#" onclick="deleteHost('${hostname}')"><i class="fas fa-trash"></i> Delete</a>
+                    <a href="#" onclick="showHostInfo('${hostname}')"><i class="fas fa-info-circle"></i> Info</a>
                 </div>
             </div>
         </div>
-        <span class="status-badge ${status}">${status === 'online' ? 'ონლაინ' : 'ოფლაინ'}</span>
+        <span class="status-badge ${status}"><i class="fas fa-${status === 'online' ? 'check-circle' : 'times-circle'}"></i> ${status === 'online' ? 'Online' : 'Offline'}</span>
         <div class="usage-info">
-            <p>CPU: ${data.cpu_usage || 'N/A'}%</p>
+            <p><i class="fas fa-microchip"></i> CPU: ${data.cpu_usage || 'N/A'}%</p>
             <div class="usage-bar"><div class="fill" style="width: ${data.cpu_usage || 0}%"></div></div>
-            <p>RAM: ${data.memory_usage || 'N/A'}%</p>
+            <p><i class="fas fa-memory"></i> RAM: ${data.memory_usage || 'N/A'}%</p>
             <div class="usage-bar"><div class="fill" style="width: ${data.memory_usage || 0}%"></div></div>
-            <p>დისკი: ${data.disk_usage || 'N/A'}%</p>
+            <p><i class="fas fa-hdd"></i> Disk: ${data.disk_usage || 'N/A'}%</p>
             <div class="usage-bar"><div class="fill" style="width: ${data.disk_usage || 0}%"></div></div>
         </div>
-        <p>IP: ${data.ip_address || 'N/A'}</p>
-        <p>AnyDesk ID: ${data.anydesk_id || 'N/A'}</p>
+        <p><i class="fas fa-network-wired"></i> IP: ${data.ip_address || 'N/A'}</p>
+        <p><i class="fas fa-id-badge"></i> AnyDesk ID: ${data.anydesk_id || 'N/A'}</p>
         <div class="card-buttons">
-            <button class="check-btn" onclick="checkHost('${hostname}')">შემოწმება</button>
-            <button class="anydesk-btn" onclick="connectToAnyDesk('${data.anydesk_id || ''}')">AnyDesk</button>
+            <button class="check-btn" onclick="checkHost('${hostname}')"><i class="fas fa-sync"></i> Check</button>
+            <button class="anydesk-btn" onclick="connectToAnyDesk('${data.anydesk_id || ''}')"><i class="fas fa-desktop"></i> AnyDesk</button>
         </div>
     `;
+    console.log("Created card:", card);
     return card;
 }
 
@@ -122,31 +147,10 @@ function determineStatus(data) {
     return timeDifference > 5 * 60 * 1000 ? 'offline' : 'online';
 }
 
-function addHostname() {
-    const hostnameInput = document.getElementById('hostname-input');
-    const addComputerSection = document.getElementById('add-computer');
-    const addButton = document.getElementById('add-hostname-button');
-    const hostname = hostnameInput.value.trim();
-    if (hostname) {
-        socket.emit('add_hostname', { hostname });
-        hostnameInput.value = ''; // გასუფთავება
-        addComputerSection.style.display = 'none';
-        addButton.style.display = 'inline-block';
-    } else {
-        showError("გთხოვთ, შეიყვანოთ ჰოსტის სახელი.");
-    }
-}
-
-function editHostname(oldHostname) {
-    const newHostname = prompt('შეიყვანეთ ახალი ჰოსტის სახელი:', oldHostname);
-    if (newHostname && newHostname !== oldHostname) {
-        socket.emit('edit_hostname', { oldHostname, newHostname });
-    }
-}
-
-function deleteHostname(hostname) {
-    if (confirm(`დარწმუნებული ხართ, რომ გსურთ წაშალოთ ${hostname}?`)) {
-        socket.emit('delete_hostname', { hostname });
+function restartHost(hostname) {
+    if (confirm(`Are you sure you want to restart ${hostname}?`)) {
+        console.log(`Restarting host: ${hostname}`);
+        socket.emit('restart_host', encryptData(JSON.stringify({ hostname })));
     }
 }
 
@@ -155,13 +159,13 @@ function connectToAnyDesk(anydesk_id) {
         const url = `anydesk:${anydesk_id}`;
         window.open(url);
     } else {
-        alert('AnyDesk ID არ არის ხელმისაწვდომი.');
+        alert('AnyDesk ID is not available.');
     }
 }
 
 function checkHost(hostname) {
-    console.log(`ჰოსტის შემოწმება: ${hostname}`);
-    socket.emit('check_host', { hostname });
+    console.log(`Checking host: ${hostname}`);
+    socket.emit('check_host', encryptData(JSON.stringify({ hostname })));
 }
 
 function showError(message) {
@@ -187,8 +191,35 @@ function searchHost() {
     });
 }
 
-// შემოწმება შენახული მუქი რეჟიმის პრეფერენციისთვის
+function deleteHost(hostname) {
+    if (confirm(`Are you sure you want to delete ${hostname}?`)) {
+        console.log(`Deleting host: ${hostname}`);
+        socket.emit('delete_host', encryptData(JSON.stringify({ hostname })));
+    }
+}
+
+function showHostInfo(hostname) {
+    console.log(`Showing info for host: ${hostname}`);
+    alert(`Host info: ${hostname}\nAdditional details will be available soon.`);
+}
+
 if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
     updateDarkModeButton();
+}
+
+setInterval(fetchComputers, 30000);
+
+// Encryption and decryption functions (client-side simulation)
+function encryptData(data) {
+    return btoa(data);
+}
+
+function decryptData(encryptedData) {
+    try {
+        return atob(encryptedData);
+    } catch (error) {
+        console.error("Decryption error:", error);
+        return '';
+    }
 }

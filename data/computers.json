@@ -1,27 +1,11 @@
 {
-  "NIKS0n": {
-    "static": {
-      "hostname": "NIKS0n",
-      "ip_address": "172.16.2.78",
-      "cpu_count": 12,
-      "cpu_freq": 1700.0,
-      "memory_total": 5979500544,
-      "disk_space_total": 511244759040,
-      "anydesk_id": "1323490944"
-    },
-    "dynamic": {
-      "hostname": "NIKS0n",
-      "cpu_usage": 1.3,
-      "memory_usage": 93.0,
-      "disk_usage": 50.7,
-      "network_usage": 168139296,
-      "last_update": "2024-11-06T15:59:08.131681"
-    }
-  },
   "A2F0002": {
     "static": {
       "hostname": "A2F0002",
       "ip_address": "172.16.2.251",
+      "os": "Windows",
+      "os_version": "10.0.22631",
+      "cpu_info": "Intel64 Family 6 Model 151 Stepping 5, GenuineIntel",
       "cpu_count": 8,
       "cpu_freq": 3300.0,
       "memory_total": 8318795776,
@@ -30,11 +14,33 @@
     },
     "dynamic": {
       "hostname": "A2F0002",
-      "cpu_usage": 0.2,
-      "memory_usage": 88.2,
-      "disk_usage": 27.2,
-      "network_usage": 166393098,
-      "last_update": "2024-11-09T11:21:02.408096"
+      "cpu_usage": 1.0,
+      "memory_usage": 82.9,
+      "disk_usage": 28.2,
+      "network_usage": 370471299,
+      "last_update": "2024-11-09T14:37:55.888725"
+    }
+  },
+  "NIKS0n": {
+    "static": {
+      "hostname": "NIKS0n",
+      "ip_address": "172.16.2.78",
+      "os": "Windows",
+      "os_version": "10.0.22631",
+      "cpu_info": "Intel64 Family 6 Model 154 Stepping 4, GenuineIntel",
+      "cpu_count": 12,
+      "cpu_freq": 1700.0,
+      "memory_total": 5979500544,
+      "disk_space_total": 511244759040,
+      "anydesk_id": "1323490944"
+    },
+    "dynamic": {
+      "hostname": "NIKS0n",
+      "cpu_usage": 1.5,
+      "memory_usage": 88.9,
+      "disk_usage": 50.9,
+      "network_usage": 511558166,
+      "last_update": "2024-11-09T14:37:39.308794"
     }
   }
 }

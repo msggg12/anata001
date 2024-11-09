@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchComputers();
     setupSocketListeners();
     applyDarkModeSetting();
-    setInterval(fetchComputers, 30000); // ავტომატურად განაახლეთ კომპიუტერების სია ყოველ 30 წამში
+    setInterval(fetchComputers, 30000);
 });
 
 function setupEventListeners() {
@@ -13,9 +13,11 @@ function setupEventListeners() {
     const searchInput = document.getElementById('hostSearch');
     const modal = document.getElementById('hostInfoModal');
     const closeBtn = modal?.querySelector('.close');
+    const refreshButton = document.getElementById('refreshButton');
 
     if (darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
     if (searchInput) searchInput.addEventListener('input', searchHost);
+    if (refreshButton) refreshButton.addEventListener('click', fetchComputers);
 
     if (closeBtn) {
         closeBtn.onclick = () => {
@@ -32,6 +34,11 @@ function setupSocketListeners() {
     socket.on('update_computer_list', (updatedComputers) => {
         try {
             console.log("მიღებულია განახლებული კომპიუტერების სია:", updatedComputers);
+            if (updatedComputers['A2F0002']) {
+                console.log("A2F0002-ის განახლებული მონაცემები:", updatedComputers['A2F0002']);
+            } else {
+                console.log("A2F0002 არ არის განახლებულ სიაში");
+            }
             updateComputerList(updatedComputers);
         } catch (error) {
             console.error("შეცდომა კომპიუტერების სიის განახლებისას:", error);
@@ -39,14 +46,7 @@ function setupSocketListeners() {
         }
     });
 
-    socket.on('check_result', (result) => {
-        if (result.success) {
-            showMessage(result.message);
-            fetchComputers(); // განაახლეთ კომპიუტერების სია შემოწმების შემდეგ
-        } else {
-            showError(result.message);
-        }
-    });
+    socket.on('check_result', handleCheckResult);
 }
 
 async function fetchComputers() {
@@ -54,6 +54,7 @@ async function fetchComputers() {
         const response = await fetch('/get_computers');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
+        console.log("მიღებულია კომპიუტერების მონაცემები:", data);
         updateComputerList(data);
     } catch (error) {
         console.error("შეცდომა კომპიუტერების მიღებისას:", error);
@@ -62,6 +63,7 @@ async function fetchComputers() {
 }
 
 function updateComputerList(data) {
+    console.log("კომპიუტერების სიის განახლება მონაცემებით:", data);
     const hostGrid = document.getElementById('hostGrid');
     hostGrid.innerHTML = '';
 
@@ -174,10 +176,18 @@ function deleteHost(hostname) {
 }
 
 function checkHost(hostname) {
+    console.log(`იგზავნება შემოწმების მოთხოვნა ჰოსტისთვის: ${hostname}`);
     socket.emit('check_host', { hostname });
-    showMessage(`${hostname}-ის შემოწმება...`);
-    // დაამატეთ ტაიმაუტი მონაცემების განახლებისთვის
-    setTimeout(() => fetchComputers(), 5000);
+    showPopUpMessage(`მონაცემები გაიგზავნა ${hostname}-ის შემოწმებისთვის!`);
+}
+
+function handleCheckResult(result) {
+    if (result.success) {
+        showMessage(result.message);
+        fetchComputers(); // განვაახლოთ კომპიუტერების სია შემოწმების შემდეგ
+    } else {
+        showError(result.message);
+    }
 }
 
 function connectToAnyDesk(anydesk_id) {
@@ -261,4 +271,12 @@ function showError(message) {
     errorDiv.textContent = message;
     document.body.appendChild(errorDiv);
     setTimeout(() => errorDiv.remove(), 3000);
+}
+
+function showPopUpMessage(message) {
+    const popUp = document.createElement('div');
+    popUp.className = 'pop-up-message';
+    popUp.textContent = message;
+    document.body.appendChild(popUp);
+    setTimeout(() => popUp.remove(), 3000);
 }
